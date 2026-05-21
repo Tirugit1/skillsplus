@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: skillsplus-backend
+  namespace: skillsplus
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: backend }
+  template:
+    metadata:
+      labels: { app: backend }
+    spec:
+      containers:
+      - name: backend
+        image: skillsplus/backend:latest
+        ports:
+        - containerPort: 4000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef: { name: skillsplus-secrets, key: database-url }
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef: { name: skillsplus-secrets, key: jwt-secret }
+        resources:
+          requests: { cpu: "100m", memory: "128Mi" }
+          limits:   { cpu: "250m", memory: "256Mi" }
+        livenessProbe:
+          httpGet: { path: /health, port: 4000 }
+          initialDelaySeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-svc
+  namespace: skillsplus
+spec:
+  selector: { app: backend }
+  ports:
+  - port: 4000
+    targetPort: 4000

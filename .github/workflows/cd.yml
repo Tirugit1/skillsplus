@@ -1,0 +1,28 @@
+name: CD — Deploy to Staging
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy-staging:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name skillsplus-staging
+      - name: Deploy to K8s
+        run: |
+          kubectl apply -f infra/k8s/backend/deployment.yaml
+          kubectl apply -f infra/k8s/frontend/deployment.yaml
+          kubectl set image deployment/skillsplus-backend backend=skillsplus/backend:${{ github.sha }} -n skillsplus
+          kubectl set image deployment/skillsplus-frontend frontend=skillsplus/frontend:${{ github.sha }} -n skillsplus
