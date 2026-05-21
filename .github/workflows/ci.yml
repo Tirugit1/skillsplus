@@ -15,7 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '20' }
+        with:
+          node-version: '22'
       - run: npm install
         working-directory: apps/${{ matrix.app }}
       - run: npm run lint
@@ -36,10 +37,10 @@ jobs:
         with:
           context: ./apps/frontend
           push: true
-          tags: skillsplus/frontend:${{ github.sha }},skillsplus/frontend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/skillsplus-frontend:latest
       - name: Build & push backend
         uses: docker/build-push-action@v5
         with:
           context: ./apps/backend
           push: true
-          tags: skillsplus/backend:${{ github.sha }},skillsplus/backend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/skillsplus-backend:latest
