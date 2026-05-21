@@ -15,3 +15,4 @@
 ./scripts/dev.sh         # start frontend + backend locally
 docker-compose up        # run with Docker
 ```
+# CI/CD Test
